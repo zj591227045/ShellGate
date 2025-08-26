@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  shellgate:
+    build: .
+    container_name: shellgate
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - DB_PATH=/app/data/shellgate.db
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=7d
+    volumes:
+      - shellgate_data:/app/data
+      - shellgate_uploads:/app/data/uploads
+      - shellgate_backups:/app/data/backups
+    restart: unless-stopped
+    networks:
+      - shellgate_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/v1/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  shellgate_data:
+    driver: local
+  shellgate_uploads:
+    driver: local
+  shellgate_backups:
+    driver: local
+
+networks:
+  shellgate_network:
+    driver: bridge
