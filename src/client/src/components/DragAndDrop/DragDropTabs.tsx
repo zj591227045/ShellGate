@@ -1,7 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { Tabs } from 'antd';
-import type { TabsProps } from 'antd';
+import { Tabs, Dropdown, Menu } from 'antd';
+import type { TabsProps, MenuProps } from 'antd';
 import { motion, Reorder } from 'framer-motion';
+import {
+  DisconnectOutlined,
+  ReloadOutlined,
+  CopyOutlined,
+  CloseOutlined,
+  CloseCircleOutlined
+} from '@ant-design/icons';
 import './DragDropTabs.css';
 
 export interface DragDropTabItem {
@@ -12,11 +19,21 @@ export interface DragDropTabItem {
   disabled?: boolean;
 }
 
+export interface TabContextMenuActions {
+  onDisconnect?: (key: string) => void;
+  onReconnect?: (key: string) => void;
+  onDuplicate?: (key: string) => void;
+  onCloseOthers?: (key: string) => void;
+  onCloseAll?: () => void;
+}
+
 interface DragDropTabsProps extends Omit<TabsProps, 'items' | 'onEdit'> {
   items: DragDropTabItem[];
   onReorder?: (newItems: DragDropTabItem[]) => void;
   onEdit?: (targetKey: React.MouseEvent | React.KeyboardEvent | string, action: 'add' | 'remove') => void;
   enableDrag?: boolean;
+  contextMenuActions?: TabContextMenuActions;
+  enableContextMenu?: boolean;
 }
 
 export const DragDropTabs: React.FC<DragDropTabsProps> = ({
@@ -24,6 +41,8 @@ export const DragDropTabs: React.FC<DragDropTabsProps> = ({
   onReorder,
   onEdit,
   enableDrag = true,
+  contextMenuActions,
+  enableContextMenu = true,
   ...tabsProps
 }) => {
   const [draggedItems, setDraggedItems] = useState(items);
@@ -38,6 +57,49 @@ export const DragDropTabs: React.FC<DragDropTabsProps> = ({
   const handleReorder = (newItems: DragDropTabItem[]) => {
     setDraggedItems(newItems);
     onReorder?.(newItems);
+  };
+
+  // 生成右键菜单
+  const getContextMenu = (item: DragDropTabItem): MenuProps => {
+    const menuItems: MenuProps['items'] = [
+      {
+        key: 'disconnect',
+        label: '断开连接',
+        icon: <DisconnectOutlined />,
+        onClick: () => contextMenuActions?.onDisconnect?.(item.key),
+      },
+      {
+        key: 'reconnect',
+        label: '重新连接',
+        icon: <ReloadOutlined />,
+        onClick: () => contextMenuActions?.onReconnect?.(item.key),
+      },
+      {
+        key: 'duplicate',
+        label: '复制标签',
+        icon: <CopyOutlined />,
+        onClick: () => contextMenuActions?.onDuplicate?.(item.key),
+      },
+      {
+        type: 'divider',
+      },
+      {
+        key: 'close-others',
+        label: '关闭其他标签',
+        icon: <CloseOutlined />,
+        onClick: () => contextMenuActions?.onCloseOthers?.(item.key),
+        disabled: draggedItems.length <= 1,
+      },
+      {
+        key: 'close-all',
+        label: '关闭所有标签',
+        icon: <CloseCircleOutlined />,
+        onClick: () => contextMenuActions?.onCloseAll?.(),
+        disabled: draggedItems.length === 0,
+      },
+    ];
+
+    return { items: menuItems };
   };
 
   const handleDragStart = (event: React.DragEvent, item: DragDropTabItem) => {
@@ -104,9 +166,8 @@ export const DragDropTabs: React.FC<DragDropTabsProps> = ({
   };
 
   // 转换为Ant Design Tabs所需的格式
-  const antdItems = draggedItems.map((item, index) => ({
-    key: item.key,
-    label: enableDrag ? (
+  const antdItems = draggedItems.map((item, index) => {
+    const tabLabel = enableDrag ? (
       <div
         draggable={!item.disabled}
         onDragStart={(e) => handleDragStart(e, item)}
@@ -124,11 +185,27 @@ export const DragDropTabs: React.FC<DragDropTabsProps> = ({
       >
         {item.label}
       </div>
-    ) : item.label,
-    children: item.children,
-    closable: item.closable,
-    disabled: item.disabled,
-  }));
+    ) : item.label;
+
+    // 如果启用右键菜单，包装在 Dropdown 中
+    const finalLabel = enableContextMenu && contextMenuActions ? (
+      <Dropdown
+        menu={getContextMenu(item)}
+        trigger={['contextMenu']}
+        placement="bottomLeft"
+      >
+        {tabLabel}
+      </Dropdown>
+    ) : tabLabel;
+
+    return {
+      key: item.key,
+      label: finalLabel,
+      children: item.children,
+      closable: item.closable,
+      disabled: item.disabled,
+    };
+  });
 
   return (
     <div className={`drag-drop-tabs ${isDragging ? 'is-dragging' : ''}`}>

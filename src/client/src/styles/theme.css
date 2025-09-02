@@ -268,6 +268,32 @@ body, body * {
   background: var(--color-terminal-selection, rgba(102, 126, 234, 0.2)) !important;
 }
 
+/* 修复中文输入法候选框背景色问题 */
+.xterm .composition-view {
+  background: var(--color-terminal-bg, var(--theme-surface)) !important;
+  color: var(--color-terminal-text, var(--theme-text)) !important;
+  border: 1px solid var(--color-border, var(--theme-border)) !important;
+}
+
+.xterm .xterm-composition {
+  background: var(--color-terminal-bg, var(--theme-surface)) !important;
+  color: var(--color-terminal-text, var(--theme-text)) !important;
+}
+
+/* 修复输入法候选词背景 */
+.xterm .xterm-helper-textarea {
+  background: transparent !important;
+}
+
+/* 确保终端文本颜色正确 */
+.xterm .xterm-rows {
+  color: var(--color-terminal-text, var(--theme-text)) !important;
+}
+
+.xterm .xterm-char-measure-element {
+  color: var(--color-terminal-text, var(--theme-text)) !important;
+}
+
 /* 服务器列表样式 */
 .server-list {
   height: 100%;

@@ -174,7 +174,7 @@ class WebSocketService extends EventEmitter {
       throw new Error('WebSocket not connected');
     }
 
-    console.log('📤 发送终端输入:', { sessionId, input: JSON.stringify(input) });
+    // console.log('📤 发送终端输入:', { sessionId, input: JSON.stringify(input) });
     this.socket.emit('terminal-input', { sessionId, input });
   }
 

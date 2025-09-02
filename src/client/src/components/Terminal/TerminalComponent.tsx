@@ -36,19 +36,107 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
   const pendingData = useRef<string[]>([]);
   const [isConnecting, setIsConnecting] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
+  const [themeReady, setThemeReady] = useState(false);
+  const [terminalInitialized, setTerminalInitialized] = useState(false);
+
+  // 当 sessionId 变化时重置终端初始化状态（用于重新连接）
+  useEffect(() => {
+    if (sessionId) {
+      console.log('🔄 SessionId 变化，重置终端状态:', sessionId);
+      setTerminalInitialized(false);
+      // 不重置 themeReady，避免主题检查问题
+    }
+  }, [sessionId]);
+
+  // 检查主题是否已经加载完成
+  useEffect(() => {
+    let mounted = true;
+
+    const checkTheme = () => {
+      if (!mounted) return;
+
+      const style = getComputedStyle(document.documentElement);
+      const terminalBg = style.getPropertyValue('--color-terminal-bg').trim();
+      const dataTheme = document.documentElement.getAttribute('data-theme');
+
+      // 检查主题状态是否一致
+      const themeConsistent = dataTheme === themeMode;
+
+      if (terminalBg && dataTheme && themeConsistent) {
+        console.log('🎨 主题已就绪且一致:', { terminalBg, dataTheme, themeMode });
+        if (mounted) {
+          setThemeReady(true);
+        }
+      } else {
+        console.log('⏳ 等待主题加载或同步...', {
+          terminalBg,
+          dataTheme,
+          themeMode,
+          themeConsistent
+        });
+        if (mounted) {
+          setTimeout(checkTheme, 50);
+        }
+      }
+    };
+
+    // 主题切换时不重置 themeReady，避免触发终端重新初始化
+    // 直接检查新主题是否就绪
+    setTimeout(checkTheme, 10);
+
+    return () => {
+      mounted = false;
+    };
+  }, [themeMode]);
 
   // 根据主题模式获取终端主题配置
   const getTerminalTheme = () => {
-    // 从CSS变量获取主题色彩
+    // 从CSS变量获取主题色彩，确保有正确的默认值
     const style = getComputedStyle(document.documentElement);
-    const terminalBg = style.getPropertyValue('--color-terminal-bg').trim() ||
-                      (themeMode === 'dark' ? '#0f172a' : '#ffffff');
-    const terminalText = style.getPropertyValue('--color-terminal-text').trim() ||
-                        (themeMode === 'dark' ? '#f1f5f9' : '#1e293b');
-    const terminalCursor = style.getPropertyValue('--color-terminal-cursor').trim() ||
-                          (themeMode === 'dark' ? '#34d399' : '#667eea');
-    const terminalSelection = style.getPropertyValue('--color-terminal-selection').trim() ||
-                             (themeMode === 'dark' ? 'rgba(129, 140, 248, 0.3)' : 'rgba(102, 126, 234, 0.2)');
+
+    // 获取原始CSS变量值
+    let terminalBg = style.getPropertyValue('--color-terminal-bg').trim();
+    let terminalText = style.getPropertyValue('--color-terminal-text').trim();
+    let terminalCursor = style.getPropertyValue('--color-terminal-cursor').trim();
+    let terminalSelection = style.getPropertyValue('--color-terminal-selection').trim();
+
+    // 调试信息：显示获取到的CSS变量值
+    console.log('🔍 CSS变量获取结果:', {
+      themeMode,
+      dataTheme: document.documentElement.getAttribute('data-theme'),
+      terminalBg,
+      terminalText,
+      terminalCursor,
+      terminalSelection
+    });
+
+    // 如果CSS变量为空或无效，使用明确的默认值
+    if (!terminalBg || terminalBg === '') {
+      terminalBg = themeMode === 'dark' ? '#0f172a' : '#ffffff';
+      console.warn('⚠️ 背景色CSS变量为空，使用默认值:', terminalBg);
+    }
+    if (!terminalText || terminalText === '') {
+      terminalText = themeMode === 'dark' ? '#f1f5f9' : '#1e293b';
+      console.warn('⚠️ 文字色CSS变量为空，使用默认值:', terminalText);
+    }
+
+    // 检查是否背景色和前景色相同（这是错误的）
+    if (terminalBg === terminalText) {
+      console.error('❌ 背景色和前景色相同！强制修复');
+      if (themeMode === 'dark' || themeMode === 'deep-ocean') {
+        terminalBg = '#0f172a';
+        terminalText = '#f1f5f9';
+      } else {
+        terminalBg = '#ffffff';
+        terminalText = '#1e293b';
+      }
+    }
+    if (!terminalCursor || terminalCursor === '') {
+      terminalCursor = themeMode === 'dark' ? '#34d399' : '#667eea';
+    }
+    if (!terminalSelection || terminalSelection === '') {
+      terminalSelection = themeMode === 'dark' ? 'rgba(129, 140, 248, 0.3)' : 'rgba(102, 126, 234, 0.2)';
+    }
 
     // 根据主题模式返回适配的颜色方案
     const isDarkTheme = ['dark', 'deep-ocean'].includes(themeMode);
@@ -60,7 +148,7 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       cursorAccent: isDarkTheme ? '#000000' : '#ffffff',
       selectionBackground: terminalSelection,
       // 标准颜色 - 根据主题调整
-      black: isDarkTheme ? '#0f172a' : '#1e293b',
+      black: isDarkTheme ? '#0f172a' : '#000000',
       red: '#ef4444',
       green: isDarkTheme ? '#34d399' : '#10b981',
       yellow: isDarkTheme ? '#fbbf24' : '#f59e0b',
@@ -76,12 +164,20 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       brightBlue: isDarkTheme ? '#3b82f6' : '#2563eb',
       brightMagenta: isDarkTheme ? '#c084fc' : '#7c3aed',
       brightCyan: isDarkTheme ? '#06b6d4' : '#0891b2',
-      brightWhite: isDarkTheme ? '#ffffff' : '#000000',
+      brightWhite: isDarkTheme ? '#ffffff' : terminalText,
     };
   };
 
   useEffect(() => {
-    if (!terminalRef.current) return;
+    console.log('🔍 终端初始化检查:', {
+      hasContainer: !!terminalRef.current,
+      themeReady,
+      terminalInitialized,
+      sessionId
+    });
+
+    // 只在容器存在、主题就绪且终端未初始化时才初始化
+    if (!terminalRef.current || !themeReady || terminalInitialized) return;
 
     // 清理之前的终端实例
     if (terminal.current) {
@@ -100,7 +196,7 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
     }
 
     // 等待容器完全渲染
-    const initTerminal = () => {
+    const initTerminal = async () => {
       if (!terminalRef.current) {
         console.warn('终端容器引用不存在');
         return;
@@ -124,9 +220,28 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
         return;
       }
 
+      // 等待主题完全加载
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // 获取终端主题配置，确保有正确的默认值
+      const terminalTheme = getTerminalTheme();
+      // console.log('🎨 初始化终端主题:', terminalTheme);
+
+      // 强制检查并修复主题颜色
+      if (!terminalTheme.background || terminalTheme.background === '' || terminalTheme.background === 'undefined') {
+        console.warn('⚠️ 背景色无效，使用强制默认值');
+        terminalTheme.background = '#ffffff';
+      }
+      if (!terminalTheme.foreground || terminalTheme.foreground === '' || terminalTheme.foreground === 'undefined') {
+        console.warn('⚠️ 前景色无效，使用强制默认值');
+        terminalTheme.foreground = '#1e293b';
+      }
+
+      // console.log('🎨 最终终端主题:', terminalTheme);
+
       // 创建终端实例
       terminal.current = new Terminal({
-        theme: getTerminalTheme(),
+        theme: terminalTheme,
         fontFamily: '"Fira Code", "Monaco", "Menlo", "Ubuntu Mono", "Consolas", monospace',
         fontSize: 14,
         lineHeight: 1.4,
@@ -207,6 +322,7 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       setTimeout(fitTerminal, 300);
 
       console.log('✅ 终端初始化完成');
+      setTerminalInitialized(true);
 
       // 写入所有缓存的数据
       if (pendingData.current.length > 0) {
@@ -219,12 +335,11 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
 
       // 立即设置键盘监听器
       if (terminal.current) {
-        console.log('⌨️ 设置键盘监听器');
+        // console.log('⌨️ 设置键盘监听器');
 
-        // 测试终端是否可以接收输入
+        // 清除之前的监听器（如果有的话）
         terminal.current.onData((data) => {
-          console.log('⌨️ 键盘输入:', JSON.stringify(data));
-          // 直接发送，不检查连接状态（因为能收到数据说明已连接）
+          // 直接发送，不打印调试信息
           websocketService.sendTerminalInput(sessionId, data);
         });
 
@@ -239,13 +354,9 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
         setTimeout(() => {
           if (terminal.current && terminalRef.current) {
             terminal.current.focus();
-            console.log('🎯 终端已获得焦点');
+            // console.log('🎯 终端已获得焦点');
 
-            // 写入欢迎信息
-            terminal.current.writeln('\x1b[36m╭─────────────────────────────────────────╮\x1b[0m');
-            terminal.current.writeln('\x1b[36m│           ShellGate Terminal            │\x1b[0m');
-            terminal.current.writeln('\x1b[36m╰─────────────────────────────────────────╯\x1b[0m');
-            terminal.current.writeln('');
+            // 终端就绪，等待服务器数据
 
             // 检查终端 DOM 结构
             const terminalElement = terminalRef.current.querySelector('.xterm');
@@ -309,11 +420,7 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
         setIsConnecting(false);
         setIsConnected(true);
 
-        // 发送一个测试命令来验证连接
-        setTimeout(() => {
-          console.log('🧪 发送测试命令: echo "Terminal Ready"');
-          websocketService.sendTerminalInput(sessionId, 'echo "Terminal Ready"\r');
-        }, 500);
+        // 连接就绪，无需发送测试命令
 
         // 发送终端大小
         if (fitAddon.current) {
@@ -414,7 +521,7 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
         }
       }
     };
-  }, [sessionId, connection, isConnected]);
+  }, [sessionId, themeReady]);
 
   // 组件挂载后调整终端大小
   useEffect(() => {
@@ -427,11 +534,24 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // 当主题改变时更新终端主题
+  // 当主题改变时更新终端主题（不重新初始化）
   useEffect(() => {
-    if (terminal.current) {
-      terminal.current.options.theme = getTerminalTheme();
-      console.log('🎨 终端主题已更新');
+    // 只要终端已初始化就立即更新主题，不等待 themeReady
+    if (terminal.current && terminalInitialized) {
+      // 等待一小段时间确保CSS变量已更新
+      setTimeout(() => {
+        if (terminal.current) {
+          const newTheme = getTerminalTheme();
+
+          // 只更新主题，不重新初始化终端
+          terminal.current.options.theme = newTheme;
+
+          // 强制刷新终端显示
+          terminal.current.refresh(0, terminal.current.rows - 1);
+
+          console.log('🎨 终端主题已更新（保持连接）:', newTheme);
+        }
+      }, 100);
     }
   }, [themeMode]);
 
