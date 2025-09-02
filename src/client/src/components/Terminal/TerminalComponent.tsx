@@ -38,13 +38,32 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
   const [isConnected, setIsConnected] = useState(false);
   const [themeReady, setThemeReady] = useState(false);
   const [terminalInitialized, setTerminalInitialized] = useState(false);
+  const terminalInitializedRef = useRef(false);
 
   // 当 sessionId 变化时重置终端初始化状态（用于重新连接）
   useEffect(() => {
     if (sessionId) {
       console.log('🔄 SessionId 变化，重置终端状态:', sessionId);
+
+      // 立即清理现有终端实例
+      if (terminal.current) {
+        try {
+          terminal.current.dispose();
+          console.log('🧹 SessionId变化时清理终端实例');
+        } catch (error) {
+          console.warn('清理终端实例时出错:', error);
+        }
+        terminal.current = null;
+      }
+
+      // 清空容器
+      if (terminalRef.current) {
+        terminalRef.current.innerHTML = '';
+      }
+
+      // 立即更新 ref，确保状态同步
+      terminalInitializedRef.current = false;
       setTerminalInitialized(false);
-      // 不重置 themeReady，避免主题检查问题
     }
   }, [sessionId]);
 
@@ -173,11 +192,12 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       hasContainer: !!terminalRef.current,
       themeReady,
       terminalInitialized,
+      terminalInitializedRef: terminalInitializedRef.current,
       sessionId
     });
 
-    // 只在容器存在、主题就绪且终端未初始化时才初始化
-    if (!terminalRef.current || !themeReady || terminalInitialized) return;
+    // 使用 ref 获取最新的初始化状态，避免状态更新延迟问题
+    if (!terminalRef.current || !themeReady || terminalInitializedRef.current) return;
 
     // 清理之前的终端实例
     if (terminal.current) {
@@ -322,6 +342,7 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       setTimeout(fitTerminal, 300);
 
       console.log('✅ 终端初始化完成');
+      terminalInitializedRef.current = true;
       setTerminalInitialized(true);
 
       // 写入所有缓存的数据
