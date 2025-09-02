@@ -6,6 +6,9 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { connectionService } from '../../services/connectionService';
 import { websocketService } from '../../services/websocketService';
 import { useLocation } from 'react-router-dom';
+import { PageTransition, FadeIn } from '../../components/AnimatedComponents';
+import { DragDropTabs, useDragDropTabs, DragDropTabItem } from '../../components/DragAndDrop';
+import { useKeyboardShortcuts, SHORTCUTS, KeyboardShortcut } from '../../hooks/useKeyboardShortcuts';
 
 interface Connection {
   id: string;
@@ -84,7 +87,7 @@ const DashboardPage: React.FC = () => {
             clearTimeout(timeout);
             resolve(void 0);
           });
-          websocketService.once('connect_error', (error) => {
+          websocketService.once('connect_error', (error: any) => {
             clearTimeout(timeout);
             reject(error);
           });
@@ -143,8 +146,99 @@ const DashboardPage: React.FC = () => {
     setActiveTabKey(key);
   };
 
+  // 键盘快捷键定义
+  const shortcuts: KeyboardShortcut[] = [
+    {
+      ...SHORTCUTS.CLOSE_TAB,
+      action: () => {
+        if (activeTabKey && terminalTabs.length > 0) {
+          handleCloseTab(activeTabKey);
+        }
+      },
+      description: '关闭当前标签页',
+    },
+    {
+      ...SHORTCUTS.NEXT_TAB,
+      action: () => {
+        if (terminalTabs.length > 1) {
+          const currentIndex = terminalTabs.findIndex(tab => tab.key === activeTabKey);
+          const nextIndex = (currentIndex + 1) % terminalTabs.length;
+          setActiveTabKey(terminalTabs[nextIndex].key);
+        }
+      },
+      description: '切换到下一个标签页',
+    },
+    {
+      ...SHORTCUTS.PREV_TAB,
+      action: () => {
+        if (terminalTabs.length > 1) {
+          const currentIndex = terminalTabs.findIndex(tab => tab.key === activeTabKey);
+          const prevIndex = currentIndex === 0 ? terminalTabs.length - 1 : currentIndex - 1;
+          setActiveTabKey(terminalTabs[prevIndex].key);
+        }
+      },
+      description: '切换到上一个标签页',
+    },
+    {
+      key: '1',
+      ctrl: true,
+      action: () => {
+        if (terminalTabs.length >= 1) {
+          setActiveTabKey(terminalTabs[0].key);
+        }
+      },
+      description: '切换到第1个标签页',
+    },
+    {
+      key: '2',
+      ctrl: true,
+      action: () => {
+        if (terminalTabs.length >= 2) {
+          setActiveTabKey(terminalTabs[1].key);
+        }
+      },
+      description: '切换到第2个标签页',
+    },
+    {
+      key: '3',
+      ctrl: true,
+      action: () => {
+        if (terminalTabs.length >= 3) {
+          setActiveTabKey(terminalTabs[2].key);
+        }
+      },
+      description: '切换到第3个标签页',
+    },
+    {
+      key: '4',
+      ctrl: true,
+      action: () => {
+        if (terminalTabs.length >= 4) {
+          setActiveTabKey(terminalTabs[3].key);
+        }
+      },
+      description: '切换到第4个标签页',
+    },
+    {
+      key: '5',
+      ctrl: true,
+      action: () => {
+        if (terminalTabs.length >= 5) {
+          setActiveTabKey(terminalTabs[4].key);
+        }
+      },
+      description: '切换到第5个标签页',
+    },
+  ];
+
+  // 启用键盘快捷键
+  useKeyboardShortcuts({
+    shortcuts,
+    enabled: true,
+  });
+
   return (
-    <>
+    <PageTransition>
       <div style={{
         height: '100%',
         background: theme.colors.background,
@@ -207,7 +301,7 @@ const DashboardPage: React.FC = () => {
               borderBottom: `1px solid ${theme.colors.border}`,
               padding: '0 16px',
             }}>
-              <Tabs
+              <DragDropTabs
                 type="editable-card"
                 activeKey={activeTabKey}
                 onChange={handleTabChange}
@@ -221,6 +315,14 @@ const DashboardPage: React.FC = () => {
                   label: tab.label,
                   closable: true,
                 }))}
+                onReorder={(newItems) => {
+                  // 重新排序终端标签页
+                  const reorderedTabs = newItems.map(item =>
+                    terminalTabs.find(tab => tab.key === item.key)!
+                  ).filter(Boolean);
+                  setTerminalTabs(reorderedTabs);
+                }}
+                enableDrag={true}
                 style={{
                   margin: 0,
                 }}
@@ -267,7 +369,7 @@ const DashboardPage: React.FC = () => {
           </div>
         )}
       </div>
-    </>
+    </PageTransition>
   );
 };
 

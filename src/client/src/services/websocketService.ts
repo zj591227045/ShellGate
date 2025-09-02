@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { EventEmitter } from 'events';
+import { EventEmitter } from '../utils/EventEmitter';
 
 interface TerminalSize {
   cols: number;
@@ -18,7 +18,7 @@ class WebSocketService extends EventEmitter {
       throw new Error('No authentication token found');
     }
 
-    const serverUrl = process.env.REACT_APP_WS_URL || 'http://localhost:4000';
+    const serverUrl = import.meta.env.VITE_WS_URL || 'http://localhost:4001';
     
     this.socket = io(serverUrl, {
       auth: {

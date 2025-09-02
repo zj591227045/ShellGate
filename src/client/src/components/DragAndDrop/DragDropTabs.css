@@ -1,0 +1,177 @@
+.drag-drop-tabs {
+  position: relative;
+}
+
+.drag-drop-tabs.is-dragging {
+  user-select: none;
+}
+
+.drag-tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 4px;
+  position: relative;
+}
+
+.drag-tab-label:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.drag-tab-label:active {
+  transform: translateY(0);
+  background-color: rgba(24, 144, 255, 0.15);
+}
+
+.drag-tab-label.disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+
+.drag-tab-label.disabled:hover {
+  background-color: transparent;
+  transform: none;
+}
+
+/* 拖拽状态样式 */
+.draggable-tabs .ant-tabs-tab {
+  transition: all 0.2s ease;
+}
+
+.draggable-tabs .ant-tabs-tab:hover {
+  transform: translateY(-1px);
+}
+
+.draggable-tabs.is-dragging .ant-tabs-tab {
+  pointer-events: none;
+}
+
+/* 拖拽指示器 */
+.drag-drop-tabs::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #1890ff, #40a9ff);
+  opacity: 0;
+  transform: scaleX(0);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.drag-drop-tabs.is-dragging::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+/* 拖拽占位符 */
+.drag-placeholder {
+  position: relative;
+  background: rgba(24, 144, 255, 0.1);
+  border: 2px dashed #1890ff;
+  border-radius: 4px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1890ff;
+  font-size: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 拖拽时的标签样式 */
+.drag-tab-label.dragging {
+  opacity: 0.8;
+  transform: rotate(2deg) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #1890ff;
+  color: white;
+  z-index: 1000;
+}
+
+/* 拖拽目标高亮 */
+.drag-tab-label.drag-over {
+  background-color: rgba(24, 144, 255, 0.2);
+  border: 1px solid #1890ff;
+}
+
+/* 暗色主题支持 */
+[data-theme='dark'] .drag-tab-label:hover {
+  background-color: rgba(24, 144, 255, 0.15);
+}
+
+[data-theme='dark'] .drag-tab-label:active {
+  background-color: rgba(24, 144, 255, 0.2);
+}
+
+[data-theme='dark'] .drag-placeholder {
+  background: rgba(24, 144, 255, 0.15);
+  border-color: #40a9ff;
+  color: #40a9ff;
+}
+
+[data-theme='dark'] .drag-tab-label.drag-over {
+  background-color: rgba(24, 144, 255, 0.25);
+  border-color: #40a9ff;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .drag-tab-label {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  
+  .drag-drop-tabs {
+    touch-action: none;
+  }
+}
+
+/* 无障碍支持 */
+.drag-tab-label:focus {
+  outline: 2px solid #1890ff;
+  outline-offset: 2px;
+}
+
+.drag-tab-label[aria-grabbed="true"] {
+  background-color: rgba(24, 144, 255, 0.2);
+}
+
+/* 拖拽手柄图标 */
+.drag-handle {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: grab;
+  padding: 2px;
+  border-radius: 2px;
+}
+
+.drag-tab-label:hover .drag-handle {
+  opacity: 0.6;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+[data-theme='dark'] .drag-handle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}

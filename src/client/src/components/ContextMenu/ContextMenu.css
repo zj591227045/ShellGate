@@ -1,0 +1,70 @@
+.context-menu-overlay {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.context-menu-overlay .ant-menu {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  min-width: 160px;
+  max-width: 280px;
+}
+
+.context-menu-overlay .ant-menu-item {
+  transition: all 0.2s ease;
+  margin: 2px 4px;
+  border-radius: 4px;
+}
+
+.context-menu-overlay .ant-menu-item:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.context-menu-overlay .ant-menu-item-danger:hover {
+  background-color: rgba(255, 77, 79, 0.1);
+  color: #ff4d4f;
+}
+
+.context-menu-overlay .ant-menu-item-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.context-menu-overlay .ant-menu-item-disabled:hover {
+  transform: none;
+  background-color: transparent;
+}
+
+/* 暗色主题支持 */
+[data-theme='dark'] .context-menu-overlay .ant-menu {
+  background: rgba(20, 20, 20, 0.95);
+  border-color: #434343;
+}
+
+[data-theme='dark'] .context-menu-overlay .ant-menu-item:hover {
+  background-color: rgba(24, 144, 255, 0.15);
+}
+
+[data-theme='dark'] .context-menu-overlay .ant-menu-item-danger:hover {
+  background-color: rgba(255, 77, 79, 0.15);
+}
+
+/* 动画效果 */
+.context-menu-overlay {
+  animation: contextMenuFadeIn 0.15s ease-out;
+}
+
+@keyframes contextMenuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

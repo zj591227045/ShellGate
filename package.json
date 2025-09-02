@@ -5,8 +5,8 @@
   "main": "dist/server/index.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "PORT=4000 nodemon --exec ts-node src/server/index.ts",
-    "dev:client": "cd src/client && npm start",
+    "dev:server": "PORT=4001 nodemon --exec ts-node src/server/index.ts",
+    "dev:client": "cd src/client && npm run dev",
     "build": "npm run build:server && npm run build:client",
     "build:server": "tsc -p tsconfig.server.json",
     "build:client": "cd src/client && npm run build",

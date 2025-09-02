@@ -36,16 +36,16 @@ const TerminalPage: React.FC = () => {
     }
 
     // 监听会话事件
-    websocketService.on('session-created', (data) => {
+    websocketService.on('session-created', (data: any) => {
       message.success(`会话创建成功: ${data.sessionId}`);
     });
 
-    websocketService.on('session-disconnected', (data) => {
+    websocketService.on('session-disconnected', (data: any) => {
       message.info(`会话已断开: ${data.sessionId}`);
       setActiveSessions(prev => prev.filter(s => s.sessionId !== data.sessionId));
     });
 
-    websocketService.on('session-error', (data) => {
+    websocketService.on('session-error', (data: any) => {
       message.error(`会话错误: ${data.error}`);
     });
 
@@ -158,9 +158,11 @@ const TerminalPage: React.FC = () => {
 
   return (
     <Content style={{
-      height: '100%',
+      height: '100vh',
       padding: 0,
       background: theme.colors.background,
+      display: 'flex',
+      flexDirection: 'column',
     }}>
       <Tabs
         type="editable-card"
@@ -176,12 +178,15 @@ const TerminalPage: React.FC = () => {
         style={{
           height: '100%',
           background: theme.colors.surface,
+          display: 'flex',
+          flexDirection: 'column',
         }}
         tabBarStyle={{
           margin: 0,
           paddingLeft: 16,
           background: theme.colors.surface,
           borderBottom: `1px solid ${theme.colors.border}`,
+          flexShrink: 0,
         }}
       />
     </Content>

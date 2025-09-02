@@ -1,0 +1,301 @@
+/* 基础加载组件样式 */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+}
+
+.loading-spinner .ant-spin {
+  max-height: none;
+}
+
+.loading-spinner .ant-spin-dot {
+  font-size: 20px;
+}
+
+.loading-spinner .ant-spin-text {
+  margin-top: 12px;
+  color: #666;
+  font-size: 14px;
+}
+
+/* 进度条加载组件样式 */
+.progress-loader {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.progress-loader .ant-progress {
+  margin: 0;
+}
+
+.progress-loader .ant-progress-text {
+  font-weight: 500;
+}
+
+/* 骨架屏加载组件样式 */
+.skeleton-loader {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.skeleton-content {
+  flex: 1;
+}
+
+.skeleton-title {
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  width: 60%;
+}
+
+.skeleton-line {
+  height: 12px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeleton-title.active,
+.skeleton-line.active {
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 连接状态指示器样式 */
+.connection-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.connection-status.connecting {
+  border-color: #1890ff;
+  background: rgba(24, 144, 255, 0.05);
+}
+
+.connection-status.connected {
+  border-color: #52c41a;
+  background: rgba(82, 196, 26, 0.05);
+}
+
+.connection-status.disconnected {
+  border-color: #faad14;
+  background: rgba(250, 173, 20, 0.05);
+}
+
+.connection-status.error {
+  border-color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.05);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-icon {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.retry-button {
+  padding: 0;
+  height: auto;
+  font-size: 12px;
+}
+
+/* 操作反馈组件样式 */
+.action-feedback {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-feedback::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: currentColor;
+}
+
+.action-feedback.success::before {
+  background: #52c41a;
+}
+
+.action-feedback.error::before {
+  background: #ff4d4f;
+}
+
+.action-feedback.warning::before {
+  background: #faad14;
+}
+
+.action-feedback.info::before {
+  background: #1890ff;
+}
+
+.feedback-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+
+.feedback-icon {
+  font-size: 16px;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.feedback-text {
+  flex: 1;
+}
+
+.feedback-message {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.feedback-description {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.feedback-action {
+  padding: 0;
+  height: auto;
+  font-size: 12px;
+  margin-right: 8px;
+}
+
+.feedback-close {
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #999;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.feedback-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+/* 暗色主题支持 */
+[data-theme='dark'] .skeleton-avatar,
+[data-theme='dark'] .skeleton-title,
+[data-theme='dark'] .skeleton-line {
+  background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+  background-size: 200% 100%;
+}
+
+[data-theme='dark'] .connection-status {
+  background: rgba(20, 20, 20, 0.9);
+  border-color: #434343;
+}
+
+[data-theme='dark'] .status-text {
+  color: #e8e8e8;
+}
+
+[data-theme='dark'] .action-feedback {
+  background: #1f1f1f;
+  border-color: #434343;
+}
+
+[data-theme='dark'] .feedback-message {
+  color: #e8e8e8;
+}
+
+[data-theme='dark'] .feedback-description {
+  color: #999;
+}
+
+[data-theme='dark'] .feedback-close {
+  color: #666;
+}
+
+[data-theme='dark'] .feedback-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e8e8e8;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .action-feedback {
+    padding: 10px 12px;
+  }
+  
+  .feedback-content {
+    gap: 8px;
+  }
+  
+  .connection-status {
+    padding: 6px 10px;
+  }
+  
+  .status-text {
+    font-size: 13px;
+  }
+}

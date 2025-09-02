@@ -39,56 +39,45 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
 
   // 根据主题模式获取终端主题配置
   const getTerminalTheme = () => {
-    // 临时强制使用深色主题进行调试
-    if (true || themeMode === 'dark') {
-      return {
-        background: '#1e1e1e',
-        foreground: '#ffffff',
-        cursor: '#ffffff',
-        cursorAccent: '#000000',
-        selectionBackground: '#3e3e3e',
-        black: '#000000',
-        red: '#cd3131',
-        green: '#0dbc79',
-        yellow: '#e5e510',
-        blue: '#2472c8',
-        magenta: '#bc3fbc',
-        cyan: '#11a8cd',
-        white: '#e5e5e5',
-        brightBlack: '#666666',
-        brightRed: '#f14c4c',
-        brightGreen: '#23d18b',
-        brightYellow: '#f5f543',
-        brightBlue: '#3b8eea',
-        brightMagenta: '#d670d6',
-        brightCyan: '#29b8db',
-        brightWhite: '#e5e5e5',
-      };
-    } else {
-      return {
-        background: '#ffffff',
-        foreground: '#333333',
-        cursor: '#333333',
-        cursorAccent: '#ffffff',
-        selectionBackground: '#b3d4fc',
-        black: '#000000',
-        red: '#cd3131',
-        green: '#00bc00',
-        yellow: '#949800',
-        blue: '#0451a5',
-        magenta: '#bc05bc',
-        cyan: '#0598bc',
-        white: '#555555',
-        brightBlack: '#666666',
-        brightRed: '#cd3131',
-        brightGreen: '#14ce14',
-        brightYellow: '#b5ba00',
-        brightBlue: '#0451a5',
-        brightMagenta: '#bc05bc',
-        brightCyan: '#0598bc',
-        brightWhite: '#a5a5a5',
-      };
-    }
+    // 从CSS变量获取主题色彩
+    const style = getComputedStyle(document.documentElement);
+    const terminalBg = style.getPropertyValue('--color-terminal-bg').trim() ||
+                      (themeMode === 'dark' ? '#0f172a' : '#ffffff');
+    const terminalText = style.getPropertyValue('--color-terminal-text').trim() ||
+                        (themeMode === 'dark' ? '#f1f5f9' : '#1e293b');
+    const terminalCursor = style.getPropertyValue('--color-terminal-cursor').trim() ||
+                          (themeMode === 'dark' ? '#34d399' : '#667eea');
+    const terminalSelection = style.getPropertyValue('--color-terminal-selection').trim() ||
+                             (themeMode === 'dark' ? 'rgba(129, 140, 248, 0.3)' : 'rgba(102, 126, 234, 0.2)');
+
+    // 根据主题模式返回适配的颜色方案
+    const isDarkTheme = ['dark', 'deep-ocean'].includes(themeMode);
+
+    return {
+      background: terminalBg,
+      foreground: terminalText,
+      cursor: terminalCursor,
+      cursorAccent: isDarkTheme ? '#000000' : '#ffffff',
+      selectionBackground: terminalSelection,
+      // 标准颜色 - 根据主题调整
+      black: isDarkTheme ? '#0f172a' : '#1e293b',
+      red: '#ef4444',
+      green: isDarkTheme ? '#34d399' : '#10b981',
+      yellow: isDarkTheme ? '#fbbf24' : '#f59e0b',
+      blue: isDarkTheme ? '#60a5fa' : '#3b82f6',
+      magenta: isDarkTheme ? '#a78bfa' : '#8b5cf6',
+      cyan: isDarkTheme ? '#22d3ee' : '#06b6d4',
+      white: terminalText,
+      // 亮色版本
+      brightBlack: isDarkTheme ? '#475569' : '#64748b',
+      brightRed: isDarkTheme ? '#f87171' : '#dc2626',
+      brightGreen: isDarkTheme ? '#4ade80' : '#059669',
+      brightYellow: isDarkTheme ? '#facc15' : '#d97706',
+      brightBlue: isDarkTheme ? '#3b82f6' : '#2563eb',
+      brightMagenta: isDarkTheme ? '#c084fc' : '#7c3aed',
+      brightCyan: isDarkTheme ? '#06b6d4' : '#0891b2',
+      brightWhite: isDarkTheme ? '#ffffff' : '#000000',
+    };
   };
 
   useEffect(() => {
@@ -138,15 +127,19 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       // 创建终端实例
       terminal.current = new Terminal({
         theme: getTerminalTheme(),
-        fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+        fontFamily: '"Fira Code", "Monaco", "Menlo", "Ubuntu Mono", "Consolas", monospace',
         fontSize: 14,
-        lineHeight: 1.2,
+        lineHeight: 1.4,
         cursorBlink: true,
         cursorStyle: 'block',
-        scrollback: 1000,
+        scrollback: 3000,
         tabStopWidth: 4,
-        cols: 80,
-        rows: 24,
+        allowTransparency: true,
+        convertEol: true,
+        disableStdin: false,
+        // 动态计算终端尺寸
+        cols: Math.max(80, Math.floor((rect.width - 32) / 8.4)), // 8.4是大概的字符宽度
+        rows: Math.max(24, Math.floor((rect.height - 32) / 19.6)), // 19.6是大概的行高
       });
 
       // 添加插件
@@ -187,19 +180,31 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       // 显示连接信息
       terminal.current.writeln(`\x1b[36m正在连接到 ${connection.name} (${connection.host}:${connection.port})...\x1b[0m`);
 
-      // 调整大小和强制刷新
-      setTimeout(() => {
+      // 调整大小和强制刷新 - 多次尝试确保正确适配
+      const fitTerminal = () => {
         if (fitAddon.current && terminal.current && terminalRef.current) {
           try {
-            fitAddon.current.fit();
-            // 强制刷新终端显示
-            terminal.current.refresh(0, terminal.current.rows - 1);
-            console.log('🔄 终端已调整大小并刷新');
+            const rect = terminalRef.current.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              fitAddon.current.fit();
+              // 强制刷新终端显示
+              terminal.current.refresh(0, terminal.current.rows - 1);
+              console.log('🔄 终端已调整大小并刷新', {
+                cols: terminal.current.cols,
+                rows: terminal.current.rows,
+                containerSize: { width: rect.width, height: rect.height }
+              });
+            }
           } catch (error) {
             console.warn('Terminal fit failed:', error);
           }
         }
-      }, 100);
+      };
+
+      // 多次尝试fit，确保终端正确适配
+      setTimeout(fitTerminal, 50);
+      setTimeout(fitTerminal, 150);
+      setTimeout(fitTerminal, 300);
 
       console.log('✅ 终端初始化完成');
 
@@ -230,24 +235,40 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
           }
         });
 
-        // 确保终端获得焦点
+        // 确保终端获得焦点和正确显示
         setTimeout(() => {
           if (terminal.current && terminalRef.current) {
             terminal.current.focus();
             console.log('🎯 终端已获得焦点');
 
-            // 测试写入一些内容
-            terminal.current.write('🔧 测试终端是否工作...\r\n');
+            // 写入欢迎信息
+            terminal.current.writeln('\x1b[36m╭─────────────────────────────────────────╮\x1b[0m');
+            terminal.current.writeln('\x1b[36m│           ShellGate Terminal            │\x1b[0m');
+            terminal.current.writeln('\x1b[36m╰─────────────────────────────────────────╯\x1b[0m');
+            terminal.current.writeln('');
 
             // 检查终端 DOM 结构
             const terminalElement = terminalRef.current.querySelector('.xterm');
+            const xtermScreen = terminalRef.current.querySelector('.xterm-screen');
             console.log('🔍 终端 DOM 检查:', {
               hasTerminalElement: !!terminalElement,
+              hasXtermScreen: !!xtermScreen,
               terminalRefChildren: terminalRef.current.children.length,
-              terminalRefHTML: terminalRef.current.innerHTML.substring(0, 200)
+              terminalSize: {
+                cols: terminal.current.cols,
+                rows: terminal.current.rows
+              }
             });
+
+            // 强制重新渲染
+            if (fitAddon.current) {
+              setTimeout(() => {
+                fitAddon.current?.fit();
+                terminal.current?.refresh(0, terminal.current.rows - 1);
+              }, 100);
+            }
           }
-        }, 100);
+        }, 200);
       } else {
         console.error('❌ 终端实例不存在，无法设置键盘监听器');
       }
@@ -432,17 +453,46 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
   const terminalTheme = getTerminalTheme();
 
   return (
-    <div style={{
-      height: '100%',
-      minHeight: '400px',
-      position: 'relative',
-      backgroundColor: terminalTheme.background,
-      border: `1px solid ${theme.colors.border}`,
-      borderRadius: '6px',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+    <div
+      className="terminal-container"
+      style={{
+        height: '100%',
+        position: 'relative',
+        backgroundColor: terminalTheme.background,
+        border: `1px solid ${theme.colors.border}`,
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+      {/* 终端标题栏 */}
+      <div style={{
+        height: '40px',
+        backgroundColor: terminalTheme.background,
+        borderBottom: `1px solid ${theme.colors.border}`,
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 16px',
+        fontSize: '13px',
+        color: theme.colors.text,
+        fontWeight: 500,
+        flexShrink: 0,
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          <div style={{
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            backgroundColor: isConnected ?
+              (terminalTheme.green || '#34d399') :
+              (terminalTheme.yellow || '#fbbf24'),
+          }} />
+          <span>{connection.name} ({connection.host}:{connection.port})</span>
+        </div>
+      </div>
+
       {isConnecting && (
         <div className="loading-overlay">
           <div className="loading-content">
@@ -460,14 +510,14 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
 
       <div
         ref={terminalRef}
+        className="terminal-content"
         style={{
-          height: '100%',
+          flex: 1,
           width: '100%',
-          minHeight: '400px',
-          minWidth: '600px',
-          padding: '8px',
+          minHeight: 0, // 重要：允许flex子元素收缩
           backgroundColor: terminalTheme.background,
-          boxSizing: 'border-box',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       />
     </div>

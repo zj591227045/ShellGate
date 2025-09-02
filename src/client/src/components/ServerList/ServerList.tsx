@@ -1,13 +1,18 @@
 import React from 'react';
-import { List, Tag, Button, Tooltip, Spin } from 'antd';
+import { List, Tag, Button, Tooltip, Spin, message } from 'antd';
 import {
   PlayCircleOutlined,
   StopOutlined,
   EditOutlined,
   DeleteOutlined,
-  LoadingOutlined
+  LoadingOutlined,
+  CopyOutlined,
+  ExclamationCircleOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { ContextMenu, ContextMenuItem } from '../ContextMenu';
+import { ListItemAnimation, HoverAnimation } from '../AnimatedComponents';
 
 interface Connection {
   id: string;
@@ -24,6 +29,9 @@ interface ServerListProps {
   onConnect: (connection: Connection) => void;
   activeConnections: string[];
   connectingIds?: string[];
+  onEdit?: (connection: Connection) => void;
+  onDelete?: (connection: Connection) => void;
+  onDuplicate?: (connection: Connection) => void;
 }
 
 const protocolColors = {
@@ -38,21 +46,90 @@ const ServerList: React.FC<ServerListProps> = ({
   connections,
   onConnect,
   activeConnections,
-  connectingIds = []
+  connectingIds = [],
+  onEdit,
+  onDelete,
+  onDuplicate
 }) => {
   const { theme } = useTheme();
+
+  const handleCopyConnectionInfo = (connection: Connection) => {
+    const info = `${connection.username}@${connection.host}:${connection.port}`;
+    navigator.clipboard.writeText(info).then(() => {
+      message.success('连接信息已复制到剪贴板');
+    }).catch(() => {
+      message.error('复制失败');
+    });
+  };
+
+  const getContextMenuItems = (connection: Connection): ContextMenuItem[] => {
+    const isActive = activeConnections.includes(connection.id);
+    const isConnecting = connectingIds.includes(connection.id);
+
+    return [
+      {
+        key: 'connect',
+        label: isActive ? '断开连接' : '连接',
+        icon: isActive ? <StopOutlined /> : <PlayCircleOutlined />,
+        disabled: isConnecting,
+        onClick: () => onConnect(connection),
+      },
+      {
+        key: 'divider1',
+        label: '-',
+        disabled: true,
+      },
+      {
+        key: 'edit',
+        label: '编辑连接',
+        icon: <EditOutlined />,
+        onClick: () => onEdit?.(connection),
+      },
+      {
+        key: 'duplicate',
+        label: '复制连接',
+        icon: <CopyOutlined />,
+        onClick: () => onDuplicate?.(connection),
+      },
+      {
+        key: 'copy-info',
+        label: '复制连接信息',
+        icon: <CopyOutlined />,
+        onClick: () => handleCopyConnectionInfo(connection),
+      },
+      {
+        key: 'divider2',
+        label: '-',
+        disabled: true,
+      },
+      {
+        key: 'delete',
+        label: '删除连接',
+        icon: <DeleteOutlined />,
+        danger: true,
+        onClick: () => onDelete?.(connection),
+      },
+    ].filter(item => item.label !== '-' || !item.disabled); // 过滤掉分隔符
+  };
 
   return (
     <div className="server-list" style={{ background: theme.colors.surface }}>
       <List
         dataSource={connections}
         style={{ background: 'transparent' }}
-        renderItem={(connection) => {
+        renderItem={(connection, index) => {
           const isActive = activeConnections.includes(connection.id);
           const isConnecting = connectingIds.includes(connection.id);
 
           return (
-            <List.Item
+            <ListItemAnimation
+              key={connection.id}
+              index={index}
+            >
+              <ContextMenu
+                items={getContextMenuItems(connection)}
+              >
+                <List.Item
               className={`connection-item ${isActive ? 'active' : ''}`}
               style={{
                 background: isActive ? theme.colors.primary : theme.colors.surface,
@@ -181,7 +258,9 @@ const ServerList: React.FC<ServerListProps> = ({
                   </div>
                 }
               />
-            </List.Item>
+                </List.Item>
+              </ContextMenu>
+            </ListItemAnimation>
           );
         }}
       />
