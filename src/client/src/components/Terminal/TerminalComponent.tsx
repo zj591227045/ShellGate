@@ -112,13 +112,26 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
 
     // 等待容器完全渲染
     const initTerminal = () => {
-      if (!terminalRef.current) return;
+      if (!terminalRef.current) {
+        console.warn('终端容器引用不存在');
+        return;
+      }
 
       // 检查容器尺寸
       const rect = terminalRef.current.getBoundingClientRect();
+      console.log('🔍 终端容器尺寸:', rect);
+
       if (rect.width === 0 || rect.height === 0) {
         // 容器还没有尺寸，延迟初始化
-        setTimeout(initTerminal, 50);
+        console.log('⏳ 容器尺寸为0，延迟初始化');
+        setTimeout(initTerminal, 100);
+        return;
+      }
+
+      // 确保容器有最小尺寸
+      if (rect.width < 100 || rect.height < 100) {
+        console.log('⏳ 容器尺寸太小，延迟初始化');
+        setTimeout(initTerminal, 100);
         return;
       }
 
@@ -144,6 +157,11 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
 
       // 挂载到 DOM - 使用 try-catch 捕获错误
       try {
+        if (!terminalRef.current) {
+          console.error('终端容器引用在挂载时丢失');
+          return;
+        }
+
         terminal.current.open(terminalRef.current);
 
         // 调试：检查终端是否正确挂载
@@ -353,12 +371,26 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       }
 
       if (terminal.current) {
-        terminal.current.dispose();
+        try {
+          terminal.current.dispose();
+          console.log('🧹 终端实例已清理');
+        } catch (error) {
+          console.warn('清理终端实例时出错:', error);
+        }
         terminal.current = null;
       }
 
       if (fitAddon.current) {
         fitAddon.current = null;
+      }
+
+      // 清空DOM容器
+      if (terminalRef.current) {
+        try {
+          terminalRef.current.innerHTML = '';
+        } catch (error) {
+          console.warn('清空终端容器时出错:', error);
+        }
       }
     };
   }, [sessionId, connection, isConnected]);
@@ -381,6 +413,21 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
       console.log('🎨 终端主题已更新');
     }
   }, [themeMode]);
+
+  // 组件卸载时的清理
+  useEffect(() => {
+    return () => {
+      console.log('🧹 TerminalComponent 组件卸载，开始清理...');
+      if (terminal.current) {
+        try {
+          terminal.current.dispose();
+          console.log('✅ 终端实例已在组件卸载时清理');
+        } catch (error) {
+          console.warn('组件卸载时清理终端实例出错:', error);
+        }
+      }
+    };
+  }, []);
 
   const terminalTheme = getTerminalTheme();
 

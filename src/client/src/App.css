@@ -68,3 +68,76 @@
   font-size: 12px;
   opacity: 0.8;
 }
+
+/* 抽屉式菜单样式 */
+.drawer-sider {
+  transition: transform 0.3s ease-in-out !important;
+}
+
+.drawer-sider.collapsed {
+  transform: translateX(-100%) !important;
+}
+
+.drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* 菜单项样式优化 */
+.ant-menu-submenu-title {
+  padding-left: 24px !important;
+}
+
+.ant-menu-item {
+  padding-left: 48px !important;
+}
+
+/* 服务器列表样式 */
+.server-item {
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.server-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.server-item:hover .server-actions {
+  opacity: 1;
+}
+
+.server-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* 菜单项样式优化 */
+.ant-menu-item {
+  height: 40px !important;
+  line-height: 40px !important;
+  margin: 2px 0 !important;
+  border-radius: 4px !important;
+}
+
+.ant-menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.ant-menu-item-selected {
+  background-color: rgba(24, 144, 255, 0.1) !important;
+  color: #1890ff !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .drawer-sider {
+    width: 100% !important;
+  }
+}
