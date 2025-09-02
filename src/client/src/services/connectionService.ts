@@ -7,6 +7,8 @@ interface Connection {
   port: number;
   protocol: 'ssh' | 'telnet' | 'rdp' | 'vnc' | 'sftp';
   username: string;
+  password?: string;
+  privateKey?: string;
   description?: string;
   tags?: string[];
 }

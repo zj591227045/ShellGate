@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Tabs, Empty, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Layout, Tabs, Empty, message, Card } from 'antd';
+import { PlusOutlined, CloudServerOutlined } from '@ant-design/icons';
 import TerminalComponent from '../../components/Terminal/TerminalComponent';
 import { connectionService } from '../../services/connectionService';
 import { websocketService } from '../../services/websocketService';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { Content } = Layout;
 
@@ -24,12 +25,15 @@ interface ActiveSession {
 }
 
 const TerminalPage: React.FC = () => {
+  const { theme } = useTheme();
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [activeKey, setActiveKey] = useState<string>('');
 
   useEffect(() => {
     // 连接 WebSocket
-    websocketService.connect();
+    if (!websocketService.isSocketConnected()) {
+      websocketService.connect();
+    }
 
     // 监听会话事件
     websocketService.on('session-created', (data) => {
@@ -46,7 +50,8 @@ const TerminalPage: React.FC = () => {
     });
 
     return () => {
-      websocketService.disconnect();
+      // 清理事件监听器
+      websocketService.removeAllListeners();
     };
   }, []);
 
@@ -102,22 +107,61 @@ const TerminalPage: React.FC = () => {
 
   if (activeSessions.length === 0) {
     return (
-      <Content style={{ 
-        height: '100%', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center' 
+      <Content style={{
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: theme.colors.background,
+        padding: '24px',
       }}>
-        <Empty 
-          description="暂无活动会话"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+        <Card
+          style={{
+            background: theme.colors.surface,
+            border: `1px solid ${theme.colors.border}`,
+            borderRadius: '12px',
+            boxShadow: theme.antdTheme.token.boxShadow,
+            textAlign: 'center',
+            maxWidth: '500px',
+            width: '100%',
+          }}
+          bodyStyle={{ padding: '48px 24px' }}
+        >
+          <CloudServerOutlined
+            style={{
+              fontSize: '64px',
+              color: theme.colors.textSecondary,
+              marginBottom: '24px',
+              display: 'block',
+            }}
+          />
+          <h2 style={{
+            color: theme.colors.text,
+            marginBottom: '16px',
+            fontSize: '20px',
+            fontWeight: 600,
+          }}>
+            暂无活动终端会话
+          </h2>
+          <p style={{
+            color: theme.colors.textSecondary,
+            fontSize: '16px',
+            lineHeight: '1.6',
+            marginBottom: '0',
+          }}>
+            请前往服务器页面选择一个连接来开始终端会话
+          </p>
+        </Card>
       </Content>
     );
   }
 
   return (
-    <Content style={{ height: '100%', padding: 0 }}>
+    <Content style={{
+      height: '100%',
+      padding: 0,
+      background: theme.colors.background,
+    }}>
       <Tabs
         type="editable-card"
         hideAdd
@@ -129,8 +173,16 @@ const TerminalPage: React.FC = () => {
           }
         }}
         items={tabItems}
-        style={{ height: '100%' }}
-        tabBarStyle={{ margin: 0, paddingLeft: 16 }}
+        style={{
+          height: '100%',
+          background: theme.colors.surface,
+        }}
+        tabBarStyle={{
+          margin: 0,
+          paddingLeft: 16,
+          background: theme.colors.surface,
+          borderBottom: `1px solid ${theme.colors.border}`,
+        }}
       />
     </Content>
   );

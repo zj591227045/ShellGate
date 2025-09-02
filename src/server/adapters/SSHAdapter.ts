@@ -84,9 +84,11 @@ export class SSHAdapter extends EventEmitter {
 
       // 监听 shell 数据
       this.shell.on('data', (data: Buffer) => {
+        const output = data.toString();
+        console.log(`📤 SSH 数据输出 [${this.connectionId}]:`, JSON.stringify(output));
         this.emit('data', {
           connectionId: this.connectionId,
-          data: data.toString()
+          data: output
         });
       });
 
@@ -131,6 +133,7 @@ export class SSHAdapter extends EventEmitter {
     }
 
     try {
+      console.log(`📥 SSH 数据输入 [${this.connectionId}]:`, JSON.stringify(data));
       this.shell.write(data);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '写入失败';

@@ -7,7 +7,7 @@ export const APP_CONFIG = {
 
 // 服务器配置
 export const SERVER_CONFIG = {
-  PORT: process.env.PORT || 3000,
+  PORT: process.env.PORT || 4000,
   HOST: process.env.HOST || '0.0.0.0',
   NODE_ENV: process.env.NODE_ENV || 'development',
 } as const;

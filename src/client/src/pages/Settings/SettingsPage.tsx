@@ -1,25 +1,29 @@
 import React, { useState } from 'react';
-import { 
-  Layout, 
-  Card, 
-  Form, 
-  Input, 
-  Button, 
-  Switch, 
-  Select, 
+import {
+  Layout,
+  Card,
+  Form,
+  Input,
+  Button,
+  Switch,
+  Select,
   Divider,
   message,
   Modal,
-  Space
+  Space,
+  Radio
 } from 'antd';
-import { 
-  UserOutlined, 
-  LockOutlined, 
+import {
+  UserOutlined,
+  LockOutlined,
   SettingOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  BulbOutlined,
+  BulbFilled
 } from '@ant-design/icons';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services/authService';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { Content } = Layout;
 const { Option } = Select;
@@ -27,6 +31,7 @@ const { confirm } = Modal;
 
 const SettingsPage: React.FC = () => {
   const { user, logout } = useAuth();
+  const { theme, themeMode, setThemeMode } = useTheme();
   const [loading, setLoading] = useState(false);
   const [passwordForm] = Form.useForm();
 
@@ -63,14 +68,119 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <Content style={{ padding: 24 }}>
+    <Content style={{
+      padding: 24,
+      background: theme.colors.background,
+      minHeight: '100%',
+    }}>
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <h2 style={{ marginBottom: 24 }}>设置</h2>
+        <h2 style={{
+          marginBottom: 24,
+          color: theme.colors.text,
+          fontSize: '24px',
+          fontWeight: 600,
+        }}>
+          设置
+        </h2>
+
+        {/* 主题设置 */}
+        <Card
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {themeMode === 'dark' ? <BulbFilled /> : <BulbOutlined />}
+              <span>主题设置</span>
+            </div>
+          }
+          style={{
+            marginBottom: 24,
+            background: theme.colors.surface,
+            border: `1px solid ${theme.colors.border}`,
+          }}
+          headStyle={{
+            background: theme.colors.surface,
+            borderBottom: `1px solid ${theme.colors.border}`,
+            color: theme.colors.text,
+          }}
+          bodyStyle={{
+            background: theme.colors.surface,
+          }}
+        >
+          <Form layout="vertical">
+            <Form.Item label={
+              <span style={{ color: theme.colors.text }}>主题模式</span>
+            }>
+              <Radio.Group
+                value={themeMode}
+                onChange={(e) => setThemeMode(e.target.value)}
+                size="large"
+              >
+                <Radio.Button value="light">
+                  <BulbOutlined style={{ marginRight: 8 }} />
+                  浅色模式
+                </Radio.Button>
+                <Radio.Button value="dark">
+                  <BulbFilled style={{ marginRight: 8 }} />
+                  深色模式
+                </Radio.Button>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item>
+              <div style={{
+                padding: '12px 16px',
+                background: theme.colors.background,
+                border: `1px solid ${theme.colors.border}`,
+                borderRadius: '6px',
+                color: theme.colors.textSecondary,
+                fontSize: '13px',
+              }}>
+                <div style={{ marginBottom: 8, fontWeight: 500 }}>
+                  当前主题预览：
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{
+                    width: 20,
+                    height: 20,
+                    background: theme.colors.primary,
+                    borderRadius: '4px',
+                  }} />
+                  <span>主色调</span>
+                  <div style={{
+                    width: 20,
+                    height: 20,
+                    background: theme.colors.surface,
+                    border: `1px solid ${theme.colors.border}`,
+                    borderRadius: '4px',
+                  }} />
+                  <span>背景色</span>
+                  <div style={{
+                    width: 20,
+                    height: 20,
+                    background: theme.colors.text,
+                    borderRadius: '4px',
+                  }} />
+                  <span>文字色</span>
+                </div>
+              </div>
+            </Form.Item>
+          </Form>
+        </Card>
 
         {/* 用户信息 */}
-        <Card 
+        <Card
           title={<><UserOutlined /> 用户信息</>}
-          style={{ marginBottom: 24 }}
+          style={{
+            marginBottom: 24,
+            background: theme.colors.surface,
+            border: `1px solid ${theme.colors.border}`,
+          }}
+          headStyle={{
+            background: theme.colors.surface,
+            borderBottom: `1px solid ${theme.colors.border}`,
+            color: theme.colors.text,
+          }}
+          bodyStyle={{
+            background: theme.colors.surface,
+          }}
         >
           <Form layout="vertical">
             <Form.Item label="用户名">
@@ -86,9 +196,21 @@ const SettingsPage: React.FC = () => {
         </Card>
 
         {/* 密码修改 */}
-        <Card 
+        <Card
           title={<><LockOutlined /> 密码设置</>}
-          style={{ marginBottom: 24 }}
+          style={{
+            marginBottom: 24,
+            background: theme.colors.surface,
+            border: `1px solid ${theme.colors.border}`,
+          }}
+          headStyle={{
+            background: theme.colors.surface,
+            borderBottom: `1px solid ${theme.colors.border}`,
+            color: theme.colors.text,
+          }}
+          bodyStyle={{
+            background: theme.colors.surface,
+          }}
         >
           <Form
             form={passwordForm}

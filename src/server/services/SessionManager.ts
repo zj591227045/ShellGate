@@ -61,9 +61,6 @@ export class SessionManager {
       throw new Error(`暂不支持 ${connection.protocol} 协议`);
     }
 
-    // 设置适配器事件监听
-    this.setupAdapterEvents(adapter, sessionId);
-
     // 创建活动会话
     const activeSession: ActiveSession = {
       id: sessionId,
@@ -101,9 +98,6 @@ export class SessionManager {
         privateKey: connection.private_key
       });
 
-      // 启动 shell
-      await adapter.startShell({ cols: 80, rows: 24 });
-
       console.log(`✅ 会话创建成功: ${sessionId}`);
       return sessionId;
 
@@ -115,6 +109,32 @@ export class SessionManager {
         [sessionId]
       );
       throw error;
+    }
+  }
+
+  async startSessionShell(sessionId: string, userId: string): Promise<void> {
+    const session = this.activeSessions.get(sessionId);
+
+    if (!session) {
+      throw new Error('会话不存在');
+    }
+
+    if (session.userId !== userId) {
+      throw new Error('无权限访问此会话');
+    }
+
+    try {
+      // 设置适配器事件监听
+      this.setupAdapterEvents(session.adapter, sessionId);
+
+      // 启动 shell
+      await session.adapter.startShell({ cols: 80, rows: 24 });
+
+      console.log(`✅ Shell 启动成功: ${sessionId}`);
+
+    } catch (error) {
+      console.error(`❌ Shell 启动失败: ${error}`);
+      throw new Error(`Shell 启动失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   }
 
@@ -314,11 +334,15 @@ export class SessionManager {
 
     // 监听 shell 就绪
     adapter.on('shell-ready', (event) => {
+      console.log(`🚀 发送 shell-ready 事件: ${sessionId}`);
       if (this.io) {
         this.io.to(`session:${sessionId}`).emit('shell-ready', {
           sessionId,
           message: event.message
         });
+        console.log(`✅ shell-ready 事件已发送到房间: session:${sessionId}`);
+      } else {
+        console.error(`❌ WebSocket IO 未初始化，无法发送 shell-ready 事件`);
       }
     });
   }

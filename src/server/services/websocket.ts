@@ -84,6 +84,20 @@ export function setupWebSocket(io: SocketIOServer): void {
 
         console.log(`✅ 会话创建成功: ${sessionId} (用户: ${socket.username})`);
 
+        // 延迟启动 shell，确保客户端已加入房间
+        setTimeout(async () => {
+          try {
+            await sessionManager.startSessionShell(sessionId, socket.userId!);
+            console.log(`✅ Shell 延迟启动成功: ${sessionId}`);
+          } catch (error) {
+            console.error(`❌ Shell 延迟启动失败: ${error}`);
+            socket.emit('session-error', {
+              sessionId,
+              error: error instanceof Error ? error.message : 'Shell 启动失败'
+            });
+          }
+        }, 100);
+
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : '会话创建失败';
         socket.emit('session-error', {

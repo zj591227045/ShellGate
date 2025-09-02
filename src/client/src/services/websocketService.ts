@@ -18,7 +18,7 @@ class WebSocketService extends EventEmitter {
       throw new Error('No authentication token found');
     }
 
-    const serverUrl = process.env.REACT_APP_WS_URL || 'http://localhost:3001';
+    const serverUrl = process.env.REACT_APP_WS_URL || 'http://localhost:4000';
     
     this.socket = io(serverUrl, {
       auth: {
@@ -88,6 +88,7 @@ class WebSocketService extends EventEmitter {
 
     // 终端相关事件
     this.socket.on('terminal-output', (data) => {
+      console.log('🔄 WebSocket 收到 terminal-output:', data);
       this.emit('terminal-output', data);
     });
 
@@ -169,9 +170,11 @@ class WebSocketService extends EventEmitter {
 
   sendTerminalInput(sessionId: string, input: string): void {
     if (!this.socket || !this.isConnected) {
+      console.error('❌ WebSocket 未连接，无法发送输入');
       throw new Error('WebSocket not connected');
     }
 
+    console.log('📤 发送终端输入:', { sessionId, input: JSON.stringify(input) });
     this.socket.emit('terminal-input', { sessionId, input });
   }
 

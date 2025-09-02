@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider } from 'antd';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { useAuth } from './hooks/useAuth';
 import LoginPage from './pages/Login/LoginPage';
 import DashboardPage from './pages/Dashboard/DashboardPage';
@@ -10,6 +11,7 @@ import HistoryPage from './pages/History/HistoryPage';
 import SettingsPage from './pages/Settings/SettingsPage';
 import MainLayout from './components/Layout/MainLayout';
 import './App.css';
+import './styles/theme.css';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -21,18 +23,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
-const App: React.FC = () => {
+// 内部应用组件，使用主题
+const AppContent: React.FC = () => {
+  const { theme } = useTheme();
+
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#1890ff',
-          colorBgContainer: '#141414',
-          colorBgElevated: '#1f1f1f',
-        },
-      }}
-    >
+    <ConfigProvider theme={theme.antdTheme}>
       <AuthProvider>
         <Router>
           <div className="App">
@@ -59,6 +55,15 @@ const App: React.FC = () => {
         </Router>
       </AuthProvider>
     </ConfigProvider>
+  );
+};
+
+// 主应用组件，提供主题上下文
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 };
 
