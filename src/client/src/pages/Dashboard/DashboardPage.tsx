@@ -337,7 +337,7 @@ const DashboardPage: React.FC = () => {
               background: theme.colors.background,
               position: 'relative',
               padding: '16px',
-              minHeight: '400px',
+              minHeight: 'calc(100vh - 64px - 32px)', // 视口高度减去头部和内边距
               overflow: 'hidden',
             }}>
               {terminalTabs.map(tab => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Layout, Tabs, Empty, message, Card } from 'antd';
 import { PlusOutlined, CloudServerOutlined } from '@ant-design/icons';
 import TerminalComponent from '../../components/Terminal/TerminalComponent';
@@ -28,6 +28,8 @@ const TerminalPage: React.FC = () => {
   const { theme } = useTheme();
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([]);
   const [activeKey, setActiveKey] = useState<string>('');
+  const [containerHeight, setContainerHeight] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // 连接 WebSocket
@@ -88,7 +90,7 @@ const TerminalPage: React.FC = () => {
     label: (
       <span>
         {session.connection.name}
-        <PlusOutlined 
+        <PlusOutlined
           style={{ marginLeft: 8, fontSize: 12 }}
           onClick={(e) => {
             e.stopPropagation();
@@ -98,11 +100,25 @@ const TerminalPage: React.FC = () => {
       </span>
     ),
     children: (
-      <TerminalComponent 
-        sessionId={session.sessionId}
-        connection={session.connection}
-      />
+      <div style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+      }}>
+        <TerminalComponent
+          sessionId={session.sessionId}
+          connection={session.connection}
+        />
+      </div>
     ),
+    style: {
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: 0,
+      padding: 0,
+    },
   }));
 
   if (activeSessions.length === 0) {
@@ -157,39 +173,34 @@ const TerminalPage: React.FC = () => {
   }
 
   return (
-    <Content style={{
-      height: '100vh',
-      padding: 0,
-      background: theme.colors.background,
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
-      <Tabs
-        type="editable-card"
-        hideAdd
-        activeKey={activeKey}
-        onChange={setActiveKey}
-        onEdit={(targetKey, action) => {
-          if (action === 'remove') {
-            handleCloseSession(targetKey as string);
-          }
-        }}
-        items={tabItems}
-        style={{
-          height: '100%',
-          background: theme.colors.surface,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-        tabBarStyle={{
-          margin: 0,
-          paddingLeft: 16,
-          background: theme.colors.surface,
-          borderBottom: `1px solid ${theme.colors.border}`,
-          flexShrink: 0,
-        }}
-      />
-    </Content>
+    <Tabs
+      className="terminal-tabs"
+      type="editable-card"
+      hideAdd
+      activeKey={activeKey}
+      onChange={setActiveKey}
+      onEdit={(targetKey, action) => {
+        if (action === 'remove') {
+          handleCloseSession(targetKey as string);
+        }
+      }}
+      items={tabItems}
+      style={{
+        height: 'calc(100vh - 64px)',
+        minHeight: 'calc(100vh - 64px)',
+        background: theme.colors.surface,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+      tabBarStyle={{
+        margin: 0,
+        paddingLeft: 16,
+        background: theme.colors.surface,
+        borderBottom: `1px solid ${theme.colors.border}`,
+        flexShrink: 0,
+      }}
+      destroyInactiveTabPane={false}
+    />
   );
 };
 

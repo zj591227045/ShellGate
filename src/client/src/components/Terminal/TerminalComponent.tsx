@@ -454,45 +454,13 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
 
   return (
     <div
-      className="terminal-container"
       style={{
         height: '100%',
         position: 'relative',
         backgroundColor: terminalTheme.background,
-        border: `1px solid ${theme.colors.border}`,
         display: 'flex',
         flexDirection: 'column',
       }}>
-      {/* 终端标题栏 */}
-      <div style={{
-        height: '40px',
-        backgroundColor: terminalTheme.background,
-        borderBottom: `1px solid ${theme.colors.border}`,
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 16px',
-        fontSize: '13px',
-        color: theme.colors.text,
-        fontWeight: 500,
-        flexShrink: 0,
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-        }}>
-          <div style={{
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            backgroundColor: isConnected ?
-              (terminalTheme.green || '#34d399') :
-              (terminalTheme.yellow || '#fbbf24'),
-          }} />
-          <span>{connection.name} ({connection.host}:{connection.port})</span>
-        </div>
-      </div>
-
       {isConnecting && (
         <div className="loading-overlay">
           <div className="loading-content">
@@ -510,11 +478,9 @@ const TerminalComponent: React.FC<TerminalComponentProps> = ({
 
       <div
         ref={terminalRef}
-        className="terminal-content"
         style={{
           flex: 1,
           width: '100%',
-          minHeight: 0, // 重要：允许flex子元素收缩
           backgroundColor: terminalTheme.background,
           position: 'relative',
           overflow: 'hidden',
